@@ -1,7 +1,7 @@
 const MongoClient = require('mongodb').MongoClient;
 
-const url = 'mongodb://localhost:27017/test01';
-const dbname = 'test01'
+const url = 'mongodb://localhost:27017/test';
+const dbname = 'test'
 
 function _connect(callback) {
     MongoClient.connect(url, (err, client) => {
@@ -9,6 +9,23 @@ function _connect(callback) {
         callback(client)
     })
 }
+
+function _init() {
+    // db.map.createIndex({"sp": "2dsphere"})
+
+    _connect((client) => {
+        const col = client.db(dbname).collection(cname);
+        col.createIndex({
+            "anystr": "2dsphere"
+        }, (err) => {
+            if(err) throw err
+            console.log('索引创建成功');
+            client.close();
+        })
+    })
+}
+
+_init()
 
 const insert = (collectionName, arrData, fn) => {
     _connect((client) => {
