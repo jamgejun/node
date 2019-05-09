@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <button id="btn">点我发</button>
+    <span id="text"></span>
+    <script type = 'text/javascript'>
+        var btn = document.getElementById('btn');
+        var text = document.getElementById('text');
+        btn.onclick = function (){
+            var xhr = new XMLHttpRequest()
+            xhr.open('get', '/test')
+            xhr.send()
+            xhr.onreadystatechange = function (){
+                console.log(xhr.readyState);
+                // 0 未初始化， 1服务器连接已建立 2请求已接受 3请求处理中 4请求已完成，且响应已就绪
+                var arr = xhr.responseText.split('^_^')
+                console.log(arr[arr.length-1]);
+                text.innerHTML = arr[arr.length-1];
+            }
+        }
+    </script>
+</body>
+</html>
