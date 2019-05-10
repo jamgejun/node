@@ -1,11 +1,10 @@
 const express = require('express')
 const art = require('express-art-template')
 const path = require('path')
-const fs = require('fs')
 const formiable = require('formidable')
 
 // 引入db数据库操作
-const db = require("./dbtools")
+const db = require("./mapTool")
 const app = express()
 const router = express.Router()
 
@@ -14,36 +13,57 @@ app.set('view engine', '.html')
 
 router.get('/', (req, res, next) => {
     try {
-        db.find('heros', {}, (err, heros) => {
-            if(err) throw err
-            res.render('index', {
-                heros
-            })
-            next()
+        const cookie = req.headers.cookie.split(";").filter((value) => {
+            return value.match(/location/g) ? value : ""
         })
+        if (cookie.length) {
+            res.redirect('/nearMe')
+        } else {
+            res.render('index')  
+        }
     } catch (e) {
         return next(e)
     }
 })
 
+router.get('/nearMe', (req, res, next) => {
+    const cookie = req.headers.cookie.split(";").filter((value) => {
+        return value.match(/location=/g) ? value.slice(10) : ""
+    }).join().slice(10).split(",")
+    db.findNear('map', {
+            left: parseFloat(cookie[1]) ,
+            right: parseFloat(cookie[0])
+    }, (err, docs) => {
+        if(err) throw err
+        console.log(docs)
+        res.render('nearMe', {
+            heros: docs
+        })  
+    })
+})
+
 // 接受数据
 router.post('/add', (req, res, next) => {
+    // 使用formiable解析参数
     var form = new formiable.IncomingForm();
     form.uploadDir = path.resolve(__dirname, './public/imgs')
     form.keepExtensions = true;
     form.parse(req, (err, fields, files) => {
-        console.log(fields)
-        console.log(files)
-        let name = fields.name
-        let address = fields.address
-        let src = 'imgs/' + path.parse(files.pic.path).base;
-        db.insert('heros', [{
-            name,
-            address,
-            src
-        }], (err) => {
+        let cname = fields.name
+        let csp = fields.sp.split(',')
+        let csrc = 'imgs/' + path.parse(files.pic.path).base;
+        db.insert('map', {   
+            name:cname, 
+            src: csrc,
+            sp: { 
+                type:"Point", 
+                coordinates:[ parseFloat(csp[1]), parseFloat(csp[0])] 
+            }
+        }
+        , (err) => {
             if (err) throw err
-            res.redirect('/')
+            res.setHeader("Set-Cookie", `location=${csp.join(',')}`)
+            res.redirect('/nearMe')
         })
     })
 })
@@ -54,8 +74,9 @@ router.all('*', (req, res, next) => {
 
 router.use((err, req, res, next) => {
     if(err) {
-        res.json(err)
-        res.render('./pages/error')
+        res.render('./pages/error', {
+            err
+        })
     }
 })
 

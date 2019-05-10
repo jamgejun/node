@@ -11,12 +11,10 @@ function _connect(callback) {
 }
 
 function _init() {
-    // db.map.createIndex({"sp": "2dsphere"})
-
     _connect((client) => {
         const col = client.db(dbname).collection(cname);
         col.createIndex({
-            "anystr": "2dsphere"
+            "sp": "2dsphere"
         }, (err) => {
             if(err) throw err
             console.log('索引创建成功');

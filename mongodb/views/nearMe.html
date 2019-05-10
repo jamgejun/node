@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>hello world</title>
+</head>
+    <body>
+        <ul>
+            <h1>附近的人</h1>
+            <ul>
+                {{ each heros}}
+                <li>
+                    用户名：{{ $value.name }} <br/>
+                    地址：{{ $value.address }} <br/>
+                    头像：<img style ="width:100px; height: 100px;" src="{{ $value.src }}" alt=""> <br>
+                    距离我：{{ $value.dist.calculated }} 米
+                </li>
+                {{/each}}
+            </ul>
+        </ul>
+    </body>
+</html>

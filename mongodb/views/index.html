@@ -7,19 +7,7 @@
     <title>hello world</title>
 </head>
 <body>
-
-    <ul>
-        <h1>用户列表</h1>
-        <ul>
-            {{ each heros}}
-            <li>
-                用户名：{{ $value.name }} <br/>
-                地址：{{ $value.address }} <br/>
-                头像：<img style ="width:100px; height: 100px;" src="{{ $value.src }}" alt="">
-            </li>
-            {{/each}}
-        </ul>
-    </ul>
+    <h1>添加信息后可查看附近的人</h1>
     <form action="/add" method="POST" enctype="multipart/form-data">
         <div>
             <label for="name">姓名：</label>
@@ -30,8 +18,8 @@
             <input type="file" name="pic">
         </div>
         <div>
-            <label for="location">经纬度</label>
-            <input type="text" name="address">
+            <label for="sp">经纬度</label>
+            <input type="text" name="sp">
         </div>
         <button>提交</button>
     </form>
