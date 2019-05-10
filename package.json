@@ -19,7 +19,8 @@
     "express": "^4.16.4",
     "express-art-template": "^1.0.1",
     "formidable": "^1.2.1",
-    "jquery": "^3.4.1"
+    "jquery": "^3.4.1",
+    "mongodb": "^3.2.4"
   },
   "bugs": {
     "url": "https://github.com/jamgejun/node/issues"
