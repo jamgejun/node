@@ -18,38 +18,59 @@
     </ul>
     {{ username }}说: <input type="text" id="msg" placeholder="输入您要说的内容">
     <button id="btn">发送</button>
-    <script>
-        var btn = document.getElementById('btn');
-        btn.onclick = function (){
-            var xhr = new XMLHttpRequest()
-            var newContent = document.getElementById('msg').value;
-            xhr.open('post', '/add')
-            xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded')
-            xhr.send('msg=' + newContent)
-            xhr.onreadystatechange = function (){
-                if(xhr.readyState ==4 && xhr.status == 200) {
-                    console.log(xhr.responseText);
-                    var msgbox = document.getElementById('content')
-                    var aLi = document.createElement('li');
-                    var array = JSON.parse(xhr.responseText)
-                    aLi.innerHTML = array[array.length-1].username + "<br>"  + array[array.length-1].content;
-                    msgbox.appendChild(aLi)
-                }
-            }
-        }
-    </script>
 
-    <script src="/socket.io/socket.io.js">
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
         var socket = io('http://127.0.0.1:3000');
+        // 客户端登录，让服务器保存用户信息，回写相关数据
+
         socket.on('connect', function () {
             console.log('连接上了')
+            // 登录，同步前后端信息
         })
-        socket.on('msg1', function () {
-
+        socket.emit('login', {
+                id:{{id}}
+        })
+        socket.on('msg1', function (data) {
+            console.log(data);
+            if (data) {
+                var msgbox = document.getElementById('content')
+                var aLi = document.createElement('li');
+                aLi.innerHTML = data.username + "<br>"  + data.content;
+                msgbox.appendChild(aLi)
+            }
         })
         socket.on('disconnet', function (){
             console.log('断开连接')
         })
+
+        document.getElementById('btn').onclick = function (){
+            var newContent = document.getElementById('msg').value;
+            socket.emit('sendMsg', {
+                newContent: newContent
+            })
+        }
+    </script>
+
+<script>
+        // var btn = document.getElementById('btn');
+        // btn.onclick = function (){
+        //     var xhr = new XMLHttpRequest()
+        //     var newContent = document.getElementById('msg').value;
+        //     xhr.open('post', '/add')
+        //     xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded')
+        //     xhr.send('msg=' + newContent)
+        //     xhr.onreadystatechange = function (){
+        //         if(xhr.readyState ==4 && xhr.status == 200) {
+        //             console.log(xhr.responseText);
+        //             var msgbox = document.getElementById('content')
+        //             var aLi = document.createElement('li');
+        //             var array = JSON.parse(xhr.responseText)
+        //             aLi.innerHTML = array[array.length-1].username + "<br>"  + array[array.length-1].content;
+        //             msgbox.appendChild(aLi)
+        //         }
+        //     }
+        // }
     </script>
 </body>
 </html>

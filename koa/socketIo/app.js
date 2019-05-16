@@ -32,21 +32,6 @@ render(app, {
 // 输出静态文件目录
 app.use(static(path.join(__dirname, '../public')))
 
-// 定义一个对象存储session数据
-let store = {
-    storage: {},
-    get (key) { // session_id
-        return this.storage[key]
-    },
-    set (key, session) { // session_value
-        this.storage[key] = session
-    },
-    destory (key) {
-        delete this.storage[key]
-    }
-}
-
-
 const msgs = [
     {
         username: 'GrayJay',
@@ -62,13 +47,49 @@ const msgs = [
     },
 ]
 
+global.mySessionStore = {
+    // "时间戳id": {
+    //     username,
+    //     socketId: "XX"
+    // }
+}
+
+function findSocketId(socketId) {
+    for (var value in global.mySessionStore) {
+        let obj = global.mySessionStore[value]
+        if(obj.socketId === socketId ) {
+            return obj
+        }
+    }
+}
+
+
 // 引入socket.io
 const Io = require('koa-socket')
 const io = new Io()
 
+let id = 0;
 io.attach(app); // 附加到app上产生关联
-io.on('connection', (ctx, next) => {
-    console.log('连接上了')
+io.on('connection', (context) => {
+    console.log(`当前在线人数：${++id}`)
+})
+
+// 接受用户消息
+io.on('sendMsg', (context, data) => {
+    // context.socket表示客户端的连接 context.socket.socketId 私聊用
+    let obj = findSocketId(context.socket.socket.id)
+    console.log(obj);
+    console.log('消息来了',obj.username+""+data.newContent)
+    let answer = {
+        username:obj.username,
+        content: data.newContent
+    }
+    io.broadcast('msg1', answer)
+    // 因为socket服务器中，没有session机制。需要拿到username
+})
+io.on('login', (context, data) => {
+    console.log(data.id);
+    global.mySessionStore[data.id].socketId = context.socket.socket.id;
 })
 // 结束
 
@@ -81,12 +102,23 @@ router.get('/', async (ctx, next) => {
     ctx.session.user = {
         username
     }
+    // 1. 生成一个时间戳，将时间戳响应给客户端（类似cookie）
+    let id = Date.now();
+    ctx.session.user.id = id;
+
+    // 2. 保存到自己的sessionStore中
+    global.mySessionStore[id] = {
+        username: ctx.session.user.username,
+        socketId: ""
+    }
     ctx.redirect('/list')
     next();
 })
 .get('/list', async (ctx, next) => {
-    ctx.render('list', {
+    // 使用时间戳id值
+    ctx.render('socketIo/chatRoom', {
         user: ctx.session.user.username,
+        id:ctx.session.user.id,
         msgs
     })
 })
