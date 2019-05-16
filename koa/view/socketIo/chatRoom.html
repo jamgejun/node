@@ -37,36 +37,19 @@
                 }
             }
         }
+    </script>
 
-        // setInterval(function () {
-        //     var xhr = new XMLHttpRequest();
-        //     xhr.open();
-        //     xhr.setRequestHeader()
-        //     xhr.send()
-        //     xhr.onreadystatechange(() => {
-        //         xhr.readyState && xhr.status
-        //     })
-        // }, 1000)
+    <script src="/socket.io/socket.io.js">
+        var socket = io('http://127.0.0.1:3000');
+        socket.on('connect', function () {
+            console.log('连接上了')
+        })
+        socket.on('msg1', function () {
 
-        // var es = new EventSource('/getTimeBylongConn');
-        // es.onmessage = function (e) {
-        //     console.log(e.data)
-        // }
-
-
-
-        // var websocket = new WebSocket("ws://127.0.0.1:3000/websocket");
-        // websocket.onopen = function (event) {
-        //     websocket.send('我连上了')
-        //     console.log('连接上')
-        // }
-        // websocket.onmessage = function (event) {
-        //     console.log(event.data)
-        // }
-        // websocket.onclose = function (event){
-        //     // dosomething
-        // }
-        // websocket.close();
+        })
+        socket.on('disconnet', function (){
+            console.log('断开连接')
+        })
     </script>
 </body>
 </html>

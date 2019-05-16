@@ -1,28 +1,17 @@
-//  koa 聊天的数据 登录 koa-session 静态资源 模板渲染
-const koa = require('koa')
+const Koa = require('koa')
 const Router = require('koa-router')
-const static = require('koa-static')
 const session = require('koa-session')
-const render = require('koa-art-template')
+const static = require('koa-static')
 const bodyparser = require('koa-bodyparser')
+const render = require('koa-art-template')
 
 const path = require('path')
 
-let app = new koa()
+let app = new Koa()
 let router = new Router()
 
-// 配置模板文件
-render(app ,{
-    root: path.join(__dirname, '../view'),
-    extname: '.html',
-    debuge: process.env.NODE_ENV !== 'production'
-})
-// 配置静态资源
-app.use(static(path.join(__dirname, '../public')))
-
-// 配置session
 app.keys = ['some secret hurr']
-let sessionconfig = {
+const sessionConfig = {
     key: 'koa:sess', // session 别名
     maxAge: 86400000,
     autoCommit: true, /** (boolean) automatically commit headers (default true) */
@@ -31,21 +20,32 @@ let sessionconfig = {
     signed: true, /**数字签名，保证数据不被篡改 */
     rolling: false, /** (boolean) Force a session identifier cookie to be set on every response. The expiration is reset to the original maxAge, resetting the expiration countdown. (default is false) */
     renew: false, /** (boolean) renew session when session is nearly expired, so we can always keep user logged in. (default is false)*/
-}
-app.use(session(sessionconfig, app))
+  }
+app.use(session(sessionConfig, app))
 
+// 使用render模板渲染
+render(app, {
+    root: path.join(__dirname, '../view'),
+    extname: ".html",
+    debuge: process.env.NODE_ENV !== 'production'
+})
+// 输出静态文件目录
+app.use(static(path.join(__dirname, '../public')))
+
+// 定义一个对象存储session数据
 let store = {
-    myStore: {},
-    get (key) {
-        return this.myStore[key]
+    storage: {},
+    get (key) { // session_id
+        return this.storage[key]
     },
-    set (key, session) {
-        this.myStore[key] = session
+    set (key, session) { // session_value
+        this.storage[key] = session
     },
-    destory() {
-        delete this.myStore[key]
+    destory (key) {
+        delete this.storage[key]
     }
 }
+
 
 const msgs = [
     {
@@ -61,6 +61,16 @@ const msgs = [
         content: "kekek"
     },
 ]
+
+// 引入socket.io
+const Io = require('koa-socket')
+const io = new Io()
+
+io.attach(app); // 附加到app上产生关联
+io.on('connection', (ctx, next) => {
+    console.log('连接上了')
+})
+// 结束
 
 router.get('/', async (ctx, next) => {
     ctx.render('login')
@@ -91,21 +101,10 @@ router.get('/', async (ctx, next) => {
     ctx.body = msgs;
 })
 
-// router.get("/getTimeBylongConn", async (ctx, next) => {
-//     ctx.set('Content-Type', 'text/event-stream')
-//     setInterval(() => {
-//         ctx.body = Date.now();
-//     }, 1000)
-// })
-// router.get("/websocket", async (ctx, next) => {
-//     setTimeout(()=> {
-//         ctx.body = "websocket end"
-//     }, 5000)
-// })
+
 app.use(bodyparser())
 app.use(router.routes())
 app.use(router.allowedMethods())
-
 app.listen(3000, () => {
-    console.log('chart online')
+    console.log('socket.io for chatRoom')
 })
