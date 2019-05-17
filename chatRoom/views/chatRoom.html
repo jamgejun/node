@@ -19,6 +19,9 @@
     <div>
         <button id="man">加入男生组</button>
         <button id="female">加入女生组</button>
+        <ul id="groupMsg">
+
+        </ul>
     </div>
     <div id="online">
         
@@ -46,11 +49,21 @@
 
         document.getElementById('man').onclick = function (){
             socketClient.emit('JoinGroup', 'man')
+            privateTo = 1
+            document.getElementById('msgToBox').lastElementChild.innerHTML = '给男生组'
         }
 
         document.getElementById('female').onclick = function (){
             socketClient.emit('JoinGroup', 'female')
+            privateTo = 0
+            document.getElementById('msgToBox').lastElementChild.innerHTML = '给女生组'
         }
+
+        socketClient.on('group', function (data){
+            var aLi = document.createElement('ul')
+            aLi.innerHTML = data
+            document.getElementById('groupMsg').appendChild(aLi)
+        })
 
         socketClient.on('connect', function (){
             console.log('客户端已成功连接上')
@@ -92,10 +105,17 @@
         document.getElementById('send').onclick = function (){
             var newContent = document.getElementById('content').value;
             if(privateTo) {
-                socketClient.emit('sendPrivateMsg', {
-                    newContent: newContent,
-                    to: privateTo
-                })
+                if(typeof privateTo !== 'number') {
+                    socketClient.emit('sendPrivateMsg', {
+                        newContent: newContent,
+                        to: privateTo
+                    })
+                } else {
+                    socketClient.emit('sendGroup', {
+                        newContent: newContent,
+                        groupId: privateTo === 1 ? 'man' : 'female'
+                    })
+                }
             } else {
                 socketClient.emit('sendMsg', {
                     newContent:newContent

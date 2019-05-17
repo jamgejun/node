@@ -69,17 +69,26 @@ io.on('sendPrivateMsg', (context, data) => {
     let { username } = findSocketId(fromSocketId, 0);
     // koa-socket 是一个socket.io的语法糖，app._io就是io对象
     let { to , newContent } = data;
-    console.log(data)
     app._io.to(to).emit('privateMsg', `${username} 对你说：${newContent}`)
 })
 
 io.on('JoinGroup', (context, data) => {
     let groupId = data;
     // 使用当前socket加入组
+    let fromSocketId = context.socket.socket.id;
+    let { username } = findSocketId(fromSocketId, 0);
     context.socket.socket.join(groupId)
-    console.log(`加入组名：${groupId}`)
+    app._io.to(groupId).emit('group', `${username} 在 ${groupId} 中说: 你好`)
 })
 
+io.on('sendGroup', (context, data) => {
+    let { groupId, newContent } = data;
+    // 使用当前socket加入组
+    let fromSocketId = context.socket.socket.id;
+    let { username } = findSocketId(fromSocketId, 0);
+    context.socket.socket.join(groupId)
+    app._io.to(groupId).emit('group', `${username} 在 ${groupId} 中说: ${newContent}`)
+})
 // http通信部分
 router.get('/',async (ctx, next) => {
     if(ctx.session.user) {
